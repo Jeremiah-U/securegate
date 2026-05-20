@@ -35,6 +35,11 @@ export async function register(values: z.infer<typeof RegisterSchema>) {
     });
 
     if (existingUser) {
+      if (!existingUser.isVerified) {
+        const verificationToken = await generateVerificationToken(existingUser.email);
+        await sendVerificationEmail(verificationToken.email, verificationToken.token);
+        return { success: "Verification email sent. Please check your inbox." };
+      }
       return { error: "Email already in use." };
     }
 
