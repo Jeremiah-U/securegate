@@ -14,8 +14,6 @@ function ResetPasswordForm() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordGuidance, setPasswordGuidance] = useState("");
   const [confirmError, setConfirmError] = useState("");
-  const [passwordTouched, setPasswordTouched] = useState(false);
-  const [confirmTouched, setConfirmTouched] = useState(false);
   const [error, setError] = useState<string | undefined>("");
   const [success, setSuccess] = useState<string | undefined>("");
   const [isPending, startTransition] = useTransition();

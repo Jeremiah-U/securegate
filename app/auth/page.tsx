@@ -106,8 +106,6 @@ function LoginForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | undefined>("");
-  const [emailTouched, setEmailTouched] = useState(false);
-  const [passwordTouched, setPasswordTouched] = useState(false);
   const [emailError, setEmailError] = useState("");
 
   const handleEmailChange = (value: string) => {
@@ -264,8 +262,6 @@ function RegisterForm({
   const [emailError, setEmailError] = useState("");
   const [passwordGuidance, setPasswordGuidance] = useState("");
   const [error, setError] = useState<string | undefined>("");
-  const [emailTouched, setEmailTouched] = useState(false);
-  const [passwordTouched, setPasswordTouched] = useState(false);
   const [countdown, setCountdown] = useState(0);
 
   const validateEmail = (value: string) => {
@@ -574,7 +570,7 @@ function ResendVerificationForm({
       </div>
 
       <p style={{ fontSize: "14px", color: "var(--muted)", marginBottom: "24px" }}>
-        Click the link in your email to verify your account. If you don't see it, check your spam folder.
+        Click the link in your email to verify your account. If you don&apos;t see it, check your spam folder.
       </p>
 
       <button
@@ -662,7 +658,7 @@ function ResetSentForm({
       </div>
 
       <p style={{ fontSize: "14px", color: "var(--muted)", marginBottom: "24px" }}>
-        Click the link in your email to reset your password. Check your spam folder if you don't see it.
+        Click the link in your email to reset your password. Check your spam folder if you don&apos;t see it.
       </p>
 
       <button
