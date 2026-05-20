@@ -110,6 +110,15 @@ function LoginForm({
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | undefined>("");
   const [emailError, setEmailError] = useState("");
+  const [passwordGuidance, setPasswordGuidance] = useState("");
+
+  const validatePassword = (value: string) => {
+    const hasMinLength = value.length >= 8;
+    const hasCapital = /[A-Z]/.test(value);
+    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(value);
+    const hasNumber = /[0-9]/.test(value);
+    return hasMinLength && hasCapital && hasSpecial && hasNumber;
+  };
 
   const handleEmailChange = (value: string) => {
     setEmail(value);
@@ -120,11 +129,26 @@ function LoginForm({
   const handlePasswordChange = (value: string) => {
     setPassword(value);
     if (error) setError("");
+    if (value) {
+      if (!validatePassword(value)) {
+        setPasswordGuidance("Password must be 8 characters long with capital letter, special character and number");
+      } else {
+        setPasswordGuidance("");
+      }
+    } else {
+      setPasswordGuidance("");
+    }
   };
 
   const handleEmailBlur = () => {
     if (!email) {
       setEmailError("This field cannot be empty");
+    }
+  };
+
+  const handlePasswordBlur = () => {
+    if (!password) {
+      setPasswordGuidance("This field cannot be empty");
     }
   };
 
@@ -208,11 +232,12 @@ function LoginForm({
           placeholder="••••••••"
           value={password}
           onChange={(e) => handlePasswordChange(e.target.value)}
+          onBlur={handlePasswordBlur}
           disabled={isPending}
           required
           autoComplete="off"
           title=""
-          error={!password ? "This field cannot be empty" : undefined}
+          error={passwordGuidance || undefined}
         />
 
         <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "20px" }}>
