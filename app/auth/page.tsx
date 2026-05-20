@@ -13,7 +13,7 @@ function AuthContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { status } = useSession();
-  const [mode, setMode] = useState<AuthMode>("register");
+  const [mode, setMode] = useState<AuthMode>("login");
   const [registeredEmail, setRegisteredEmail] = useState<string>("");
   const [isPending, startTransition] = useTransition();
 
