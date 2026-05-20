@@ -129,15 +129,6 @@ function LoginForm({
   const handlePasswordChange = (value: string) => {
     setPassword(value);
     if (error) setError("");
-    if (value) {
-      if (!validatePassword(value)) {
-        setPasswordGuidance("Password must be 8 characters long with capital letter, special character and number");
-      } else {
-        setPasswordGuidance("");
-      }
-    } else {
-      setPasswordGuidance("");
-    }
   };
 
   const handleEmailBlur = () => {
