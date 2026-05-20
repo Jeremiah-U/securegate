@@ -258,6 +258,8 @@ function RegisterForm({
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState("");
   const [passwordGuidance, setPasswordGuidance] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [confirmError, setConfirmError] = useState("");
   const [error, setError] = useState<string | undefined>("");
   const [countdown, setCountdown] = useState(0);
 
@@ -314,6 +316,23 @@ function RegisterForm({
     }
   };
 
+  const handleConfirmChange = (value: string) => {
+    setConfirmPassword(value);
+    if (value !== password && password) {
+      setConfirmError("Passwords do not match");
+    } else {
+      setConfirmError("");
+    }
+  };
+
+  const handleConfirmBlur = () => {
+    if (!confirmPassword) {
+      setConfirmError("Please confirm your password");
+    } else if (confirmPassword !== password) {
+      setConfirmError("Passwords do not match");
+    }
+  };
+
   useEffect(() => {
     if (countdown > 0) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
@@ -325,13 +344,18 @@ function RegisterForm({
     e.preventDefault();
     setError("");
 
-    if (!email || !password) {
+    if (!email || !password || !confirmPassword) {
       setError("Please fill in all fields.");
       return;
     }
 
     if (!validateEmail(email)) {
       setEmailError("Please, use a valid email");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setConfirmError("Passwords do not match");
       return;
     }
 
@@ -400,6 +424,20 @@ function RegisterForm({
           autoComplete="off"
           title=""
           error={passwordGuidance || undefined}
+        />
+
+        <PasswordInput
+          id="register-confirm-password"
+          label="Confirm Password"
+          placeholder="••••••••"
+          value={confirmPassword}
+          onChange={(e) => handleConfirmChange(e.target.value)}
+          onBlur={handleConfirmBlur}
+          disabled={isPending}
+          required
+          autoComplete="off"
+          title=""
+          error={confirmError || undefined}
         />
 
         <button className="btn btn-primary" type="submit" disabled={isPending || countdown > 0}>
