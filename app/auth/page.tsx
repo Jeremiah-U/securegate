@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useTransition, Suspense } from "react";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import { register, forgotPassword, resendVerificationEmail } from "@/actions/auth";
@@ -81,10 +82,12 @@ function AuthContent() {
         </div>
       </div>
       <div style={{ flex: 1, backgroundColor: "#000", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
-        <img
+        <Image
           src="/image/securegate-logo.png"
           alt="SecureGate Logo"
-          style={{ width: "400px", height: "400px", objectFit: "contain" }}
+          width={400}
+          height={400}
+          style={{ objectFit: "contain" }}
         />
       </div>
     </main>
