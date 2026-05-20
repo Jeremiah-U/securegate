@@ -123,14 +123,9 @@ function LoginForm({
   };
 
   const handleEmailBlur = () => {
-    setEmailTouched(true);
     if (!email) {
       setEmailError("This field cannot be empty");
     }
-  };
-
-  const handlePasswordBlur = () => {
-    setPasswordTouched(true);
   };
 
   useEffect(() => {
@@ -213,12 +208,11 @@ function LoginForm({
           placeholder="••••••••"
           value={password}
           onChange={(e) => handlePasswordChange(e.target.value)}
-          onBlur={handlePasswordBlur}
           disabled={isPending}
           required
           autoComplete="off"
           title=""
-          error={passwordTouched && !password ? "This field cannot be empty" : undefined}
+          error={!password ? "This field cannot be empty" : undefined}
         />
 
         <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "20px" }}>
@@ -284,7 +278,6 @@ function RegisterForm({
     setEmail(value);
     if (error) setError("");
     if (value) {
-      setEmailTouched(false);
       if (!validateEmail(value)) {
         setEmailError("Please, use a valid email");
       } else {
@@ -299,7 +292,6 @@ function RegisterForm({
     setPassword(value);
     if (error) setError("");
     if (value) {
-      setPasswordTouched(false);
       if (!validatePassword(value)) {
         setPasswordGuidance("Password must be 8 characters long with capital letter, special character and number");
       } else {
@@ -311,14 +303,12 @@ function RegisterForm({
   };
 
   const handleEmailBlur = () => {
-    setEmailTouched(true);
     if (!email) {
       setEmailError("This field cannot be empty");
     }
   };
 
   const handlePasswordBlur = () => {
-    setPasswordTouched(true);
     if (!password) {
       setPasswordGuidance("This field cannot be empty");
     }
