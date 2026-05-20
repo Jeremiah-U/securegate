@@ -5,16 +5,68 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { resetPassword } from "@/actions/auth";
 import { PasswordInput } from "@/components/PasswordInput";
-import { PasswordStrength } from "@/components/PasswordStrength";
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
 
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordGuidance, setPasswordGuidance] = useState("");
+  const [confirmError, setConfirmError] = useState("");
+  const [passwordTouched, setPasswordTouched] = useState(false);
+  const [confirmTouched, setConfirmTouched] = useState(false);
   const [error, setError] = useState<string | undefined>("");
   const [success, setSuccess] = useState<string | undefined>("");
   const [isPending, startTransition] = useTransition();
+
+  const validatePassword = (value: string) => {
+    const hasMinLength = value.length >= 8;
+    const hasCapital = /[A-Z]/.test(value);
+    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(value);
+    const hasNumber = /[0-9]/.test(value);
+    return hasMinLength && hasCapital && hasSpecial && hasNumber;
+  };
+
+  const handlePasswordChange = (value: string) => {
+    setPassword(value);
+    if (error) setError("");
+    if (value) {
+      setPasswordTouched(false);
+      if (!validatePassword(value)) {
+        setPasswordGuidance("Password must be 8 characters long with capital letter, special character and number");
+      } else {
+        setPasswordGuidance("");
+      }
+    } else {
+      setPasswordGuidance("");
+    }
+  };
+
+  const handleConfirmChange = (value: string) => {
+    setConfirmPassword(value);
+    if (value && value !== password) {
+      setConfirmError("Passwords do not match");
+    } else {
+      setConfirmError("");
+    }
+  };
+
+  const handlePasswordBlur = () => {
+    setPasswordTouched(true);
+    if (!password) {
+      setPasswordGuidance("This field cannot be empty");
+    }
+  };
+
+  const handleConfirmBlur = () => {
+    setConfirmTouched(true);
+    if (!confirmPassword) {
+      setConfirmError("Please confirm your password");
+    } else if (confirmPassword !== password) {
+      setConfirmError("Passwords do not match");
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,6 +83,16 @@ function ResetPasswordForm() {
       return;
     }
 
+    if (!validatePassword(password)) {
+      setPasswordGuidance("Password must be 8 characters long with capital letter, special character and number");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setConfirmError("Passwords do not match");
+      return;
+    }
+
     startTransition(async () => {
       try {
         const res = await resetPassword({ password }, token);
@@ -39,6 +101,7 @@ function ResetPasswordForm() {
         } else if (res.success) {
           setSuccess(res.success);
           setPassword("");
+          setConfirmPassword("");
         }
       } catch (err) {
         console.error("Reset password submission error:", err);
@@ -63,14 +126,28 @@ function ResetPasswordForm() {
           label="New Password"
           placeholder="••••••••"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => handlePasswordChange(e.target.value)}
+          onBlur={handlePasswordBlur}
           disabled={isPending}
           required
+          autoComplete="new-password"
+          title=""
+          error={passwordGuidance || undefined}
         />
 
-        <div style={{ marginBottom: "20px" }}>
-          <PasswordStrength password={password} />
-        </div>
+        <PasswordInput
+          id="confirm-password"
+          label="Confirm Password"
+          placeholder="••••••••"
+          value={confirmPassword}
+          onChange={(e) => handleConfirmChange(e.target.value)}
+          onBlur={handleConfirmBlur}
+          disabled={isPending}
+          required
+          autoComplete="new-password"
+          title=""
+          error={confirmError || undefined}
+        />
 
         <button
           className="btn btn-primary"

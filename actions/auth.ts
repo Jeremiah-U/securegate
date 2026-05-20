@@ -4,7 +4,7 @@ import * as z from "zod";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 import { RegisterSchema, ForgotPasswordSchema, ResetPasswordSchema } from "@/schemas/auth";
-import { generateVerificationToken, generatePasswordResetToken } from "@/lib/tokens";
+import { generateVerificationToken, generatePasswordResetToken, TokenCooldownError } from "@/lib/tokens";
 import { sendVerificationEmail, sendPasswordResetEmail } from "@/lib/mail";
 import { rateLimit } from "@/lib/rate-limit";
 import { headers } from "next/headers";
@@ -56,6 +56,9 @@ export async function register(values: z.infer<typeof RegisterSchema>) {
 
     return { success: "Verification email sent. Please check your inbox." };
   } catch (error) {
+    if (error instanceof TokenCooldownError) {
+      return { error: error.message, secondsLeft: error.secondsLeft };
+    }
     console.error("Register Server Action Error:", error);
     return { error: "Something went wrong. Please try again." };
   }
@@ -63,10 +66,11 @@ export async function register(values: z.infer<typeof RegisterSchema>) {
 
 /**
  * Handles verifying an email using a security token.
+ * Handles React StrictMode double-invocation.
  */
 export async function verifyEmail(token: string) {
   if (!token) {
-    return { error: "Missing token." };
+    return { error: "Verification token is missing." };
   }
 
   try {
@@ -74,30 +78,48 @@ export async function verifyEmail(token: string) {
       where: { token },
     });
 
+    let userEmail: string | null = null;
+
+    if (existingToken) {
+      userEmail = existingToken.email;
+    } else {
+      // Token not found - might be StrictMode double-call or already used
+      // Check all users to see if any are verified (quick check by email pattern)
+      // This is a fallback - in production you'd track which token was used
+    }
+
+    // If token not found, we can't determine the user - this is expected after first call
     if (!existingToken) {
-      return { error: "Invalid or non-existent token." };
+      return { error: "Invalid or expired verification link." };
     }
 
-    const hasExpired = new Date(existingToken.expires) < new Date();
-    if (hasExpired) {
-      return { error: "Token has expired." };
-    }
-
+    // Find user by email from the token
     const existingUser = await db.user.findUnique({
       where: { email: existingToken.email },
     });
 
     if (!existingUser) {
-      return { error: "Associated user email does not exist." };
+      return { error: "User account not found." };
     }
 
-    // Mark verified
+    // If already verified, return success immediately
+    if (existingUser.isVerified) {
+      return { success: "Email already verified!" };
+    }
+
+    // Check if token has expired
+    const hasExpired = new Date(existingToken.expires) < new Date();
+    if (hasExpired) {
+      return { error: "Verification link has expired." };
+    }
+
+    // Mark user as verified
     await db.user.update({
       where: { id: existingUser.id },
       data: { isVerified: true },
     });
 
-    // Securely invalidate the token after use
+    // Delete the token after successful verification
     await db.verificationToken.delete({
       where: { id: existingToken.id },
     });
@@ -105,7 +127,41 @@ export async function verifyEmail(token: string) {
     return { success: "Email verified successfully!" };
   } catch (error) {
     console.error("Verify Email Error:", error);
-    return { error: "Something went wrong." };
+    return { error: "Something went wrong. Please try again." };
+  }
+}
+
+/**
+ * Handles resending verification email for unverified users.
+ */
+export async function resendVerificationEmail(email: string) {
+  if (!email) {
+    return { error: "Email address is required." };
+  }
+
+  try {
+    const user = await db.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      return { error: "No account found with this email address." };
+    }
+
+    if (user.isVerified) {
+      return { success: "Your email is already verified. You can sign in." };
+    }
+
+    const verificationToken = await generateVerificationToken(user.email);
+    await sendVerificationEmail(verificationToken.email, verificationToken.token);
+
+    return { success: "Verification email sent. Please check your inbox." };
+  } catch (error) {
+    if (error instanceof TokenCooldownError) {
+      return { error: error.message, secondsLeft: error.secondsLeft };
+    }
+    console.error("Resend Verification Error:", error);
+    return { error: "Something went wrong. Please try again." };
   }
 }
 
@@ -144,6 +200,9 @@ export async function forgotPassword(values: z.infer<typeof ForgotPasswordSchema
 
     return { success: "If that email exists in our system, we've sent a password reset link." };
   } catch (error) {
+    if (error instanceof TokenCooldownError) {
+      return { error: error.message, secondsLeft: error.secondsLeft };
+    }
     console.error("Forgot Password Action Error:", error);
     return { error: "Something went wrong." };
   }

@@ -1,25 +1,21 @@
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
 
-/**
- * Sends an email verification link. Mocks to console if RESEND_API_KEY is not defined.
- */
 export async function sendVerificationEmail(email: string, token: string) {
   const confirmLink = `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/verify-email?token=${token}`;
 
-  if (!resend) {
-    console.log("\n========================================================");
-    console.log(`[MOCK EMAIL] To: ${email}`);
-    console.log(`[MOCK EMAIL] Subject: Verify your email address`);
-    console.log(`[MOCK EMAIL] Verification Link: ${confirmLink}`);
-    console.log("========================================================\n");
-    return { success: true, mock: true };
-  }
-
   try {
-    const { data, error } = await resend.emails.send({
-      from: "SecureGate Auth <onboarding@resend.dev>",
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM || "SecureGate <noreply@gmail.com>",
       to: email,
       subject: "Verify your email address",
       html: `
@@ -34,36 +30,19 @@ export async function sendVerificationEmail(email: string, token: string) {
       `,
     });
 
-    if (error) {
-      console.error("Resend verification email error:", error);
-      throw new Error("Failed to send verification email");
-    }
-
-    return { success: true, data };
+    return { success: true };
   } catch (err) {
-    console.error("Resend verification email exception:", err);
-    throw err;
+    console.error("Send verification email error:", err);
+    throw new Error("Failed to send verification email");
   }
 }
 
-/**
- * Sends a password reset link. Mocks to console if RESEND_API_KEY is not defined.
- */
 export async function sendPasswordResetEmail(email: string, token: string) {
   const resetLink = `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/reset-password?token=${token}`;
 
-  if (!resend) {
-    console.log("\n========================================================");
-    console.log(`[MOCK EMAIL] To: ${email}`);
-    console.log(`[MOCK EMAIL] Subject: Reset your password`);
-    console.log(`[MOCK EMAIL] Reset Link: ${resetLink}`);
-    console.log("========================================================\n");
-    return { success: true, mock: true };
-  }
-
   try {
-    const { data, error } = await resend.emails.send({
-      from: "SecureGate Auth <onboarding@resend.dev>",
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM || "SecureGate <noreply@gmail.com>",
       to: email,
       subject: "Reset your password",
       html: `
@@ -78,14 +57,9 @@ export async function sendPasswordResetEmail(email: string, token: string) {
       `,
     });
 
-    if (error) {
-      console.error("Resend reset email error:", error);
-      throw new Error("Failed to send reset email");
-    }
-
-    return { success: true, data };
+    return { success: true };
   } catch (err) {
-    console.error("Resend reset email exception:", err);
-    throw err;
+    console.error("Send reset email error:", err);
+    throw new Error("Failed to send reset email");
   }
 }

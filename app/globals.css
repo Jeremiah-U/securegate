@@ -13,6 +13,8 @@
   --muted-background: #f4f4f5;
   --muted-border: #e4e4e7;
   
+  --grey-92: #ebebeb;
+  
   --error: #e11d48;
   --error-bg: #fff1f2;
   --error-border: #fecdd3;
@@ -157,6 +159,18 @@ h1, h2, h3, h4 {
   box-shadow: 0 0 0 1px var(--primary);
 }
 
+.form-input:not(:placeholder-shown) {
+  background-color: var(--grey-92);
+  outline: none;
+}
+
+.form-input:-webkit-autofill {
+  background-color: var(--grey-92) !important;
+  -webkit-box-shadow: 0 0 0 1000px var(--grey-92) inset !important;
+  -webkit-text-fill-color: var(--foreground) !important;
+  color: var(--foreground) !important;
+}
+
 .form-input:disabled {
   background-color: var(--muted-background);
   color: var(--muted);
@@ -274,6 +288,12 @@ h1, h2, h3, h4 {
   background-color: var(--success-bg);
   color: var(--success);
   border-color: var(--success-border);
+}
+
+.alert-info {
+  background-color: var(--primary-bg);
+  color: var(--primary);
+  border-color: var(--primary-border);
 }
 
 .auth-footer {
