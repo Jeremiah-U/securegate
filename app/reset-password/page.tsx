@@ -30,7 +30,6 @@ function ResetPasswordForm() {
     setPassword(value);
     if (error) setError("");
     if (value) {
-      setPasswordTouched(false);
       if (!validatePassword(value)) {
         setPasswordGuidance("Password must be 8 characters long with capital letter, special character and number");
       } else {
@@ -51,14 +50,12 @@ function ResetPasswordForm() {
   };
 
   const handlePasswordBlur = () => {
-    setPasswordTouched(true);
     if (!password) {
       setPasswordGuidance("This field cannot be empty");
     }
   };
 
   const handleConfirmBlur = () => {
-    setConfirmTouched(true);
     if (!confirmPassword) {
       setConfirmError("Please confirm your password");
     } else if (confirmPassword !== password) {
